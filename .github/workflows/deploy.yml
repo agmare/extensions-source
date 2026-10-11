@@ -25,11 +25,11 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.7'
 
       - name: Build APK
-        run: gradle :src:fa:mt98:assembleRelease
+        run: |
+          chmod +x gradlew
+          ./gradlew :src:fa:mt98:assembleRelease
 
       - name: Generate Repository JSON
         run: |
