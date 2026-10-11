@@ -29,8 +29,6 @@ class MT98(
 
     override val supportsLatest = true
 
-    override val supportsLatest = true
-
     private val mt98Headers: Headers = Headers.Builder()
         .add("Referer", "https://mt98.ir")
         .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
