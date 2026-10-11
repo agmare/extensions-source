@@ -26,7 +26,7 @@ class MT98(
 
     override val name = "MT98"
     override val baseUrl = "https://mt98.ir"
-    
+
     override val supportsLatest = true
 
     override val supportsLatest = true
