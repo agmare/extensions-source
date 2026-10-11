@@ -1,7 +1,7 @@
 import io.github.keiyoushi.gradle.api.ContentWarning
 
 plugins {
-    id("io.github.keiyoushi.extension")
+    id("keiyoushi.extension")
 }
 
 keiyoushi {
