@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          lfs: true # Downloads the actual wrapper jar and image files
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -23,11 +25,11 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.7'
 
       - name: Build APK
-        run: gradle :src:fa:mt98:assembleRelease
+        run: |
+          chmod +x gradlew
+          ./gradlew :src:fa:mt98:assembleRelease
 
       - name: Generate Repository JSON
         run: |
