@@ -19,7 +19,10 @@ import okhttp3.Headers
 import okhttp3.Request
 
 @Source
-class MT98 : KeiSource() {
+class MT98(
+    override val lang: String,
+    override val id: Long
+) : KeiSource() {
 
     override val supportsLatest = true
 
