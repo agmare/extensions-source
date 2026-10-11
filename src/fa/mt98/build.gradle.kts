@@ -1,12 +1,12 @@
 import io.github.keiyoushi.gradle.api.ContentWarning
 
 plugins {
-    alias(kei.plugins.extension)
+    id("io.github.keiyoushi.extension")
 }
 
 keiyoushi {
     name = "MT98"
-    libVersion = "1.6" 
+    libVersion = "1.6"
     versionCode = 1
 
     source {
