@@ -24,6 +24,11 @@ class MT98(
     override val id: Long,
 ) : KeiSource() {
 
+    override val name = "MT98"
+    override val baseUrl = "https://mt98.ir"
+    
+    override val supportsLatest = true
+
     override val supportsLatest = true
 
     private val mt98Headers: Headers = Headers.Builder()
