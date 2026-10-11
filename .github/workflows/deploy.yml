@@ -1,0 +1,55 @@
+name: Build and Deploy MT98
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build APK
+        run: ./gradlew :src:fa:mt98:assembleRelease
+
+      - name: Generate Repository JSON
+        run: |
+          mkdir -p repo/apk
+          cp src/fa/mt98/build/outputs/apk/release/*.apk repo/apk/
+          
+          # Create the index.min.json for Mihon
+          cat <<EOF > repo/index.min.json
+          [
+            {
+              "name": "MT98",
+              "pkg": "eu.kanade.tachiyomi.extension.fa.mt98",
+              "apk": "apk/$(basename repo/apk/*.apk)",
+              "version": "1.6.1",
+              "code": 1,
+              "lang": "fa",
+              "nsfw": 0
+            }
+          ]
+          EOF
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./repo
+          publish_branch: gh-pages
