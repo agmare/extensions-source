@@ -26,9 +26,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Build APK
+      - name: Build Extension
         run: |
           chmod +x gradlew
+          ./gradlew spotlessApply
           ./gradlew :src:fa:mt98:assembleRelease
 
       - name: Generate Repository JSON
