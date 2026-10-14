@@ -14,7 +14,8 @@ import keiyoushi.utils.asJsoup
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.Headers
 import okhttp3.Request
 
@@ -24,7 +25,7 @@ class MT98(
     override val id: Long,
 ) : KeiSource() {
 
-    override val name = "MT98"
+    override val name = "Manhwa Tower"
     override val baseUrl = "https://mt98.ir"
 
     override val supportsLatest = true
@@ -33,6 +34,12 @@ class MT98(
         .add("Referer", "https://mt98.ir")
         .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
         .build()
+
+    // Cache for all mangas loaded from Latest
+    private val cacheMutex = Mutex()
+    private val cachedMangas = LinkedHashMap<String, SManga>()
+    private var lastSequentialPageLoaded = 0
+    private var isAllLatestLoaded = false
 
     // --- Popular Manga ---
     override suspend fun getPopularManga(page: Int): MangasPage {
@@ -70,30 +77,45 @@ class MT98(
 
         val hasNextPage = document.selectFirst(".pagination-wrapper .custom-pagination li a:contains(›)") != null
 
-        return MangasPage(mangas, hasNextPage)
-    }
-
-    // --- Search Manga ---
-    override suspend fun getSearchMangaList(page: Int, query: String, filters: FilterList): MangasPage {
-        // Adds a 1-second delay to prevent Cloudflare from blocking the search
-        delay(1000)
-
-        val request = GET("$baseUrl/search.php?Search=$query", mt98Headers)
-        val document = client.newCall(request).await().asJsoup()
-
-        // Target only the exact wrapper column that contains the card
-        val mangas = document.select(".col:has(.card)").mapNotNull { element ->
-            // The link wraps the entire card
-            val link = element.selectFirst("a")?.attr("href") ?: return@mapNotNull null
-
-            SManga.create().apply {
-                title = element.selectFirst(".card-title")?.text() ?: "Unknown"
-                setUrlWithoutDomain(link)
-                thumbnail_url = element.selectFirst("img")?.attr("src")
+        synchronized(cachedMangas) {
+            for (manga in mangas) {
+                cachedMangas[manga.url] = manga
+            }
+            if (page == lastSequentialPageLoaded + 1) {
+                lastSequentialPageLoaded = page
+            }
+            if (!hasNextPage || mangas.isEmpty()) {
+                isAllLatestLoaded = true
             }
         }
 
-        return MangasPage(mangas, false)
+        return MangasPage(mangas, hasNextPage)
+    }
+
+    // --- Search Manga (Fetches All Latest Pages Then Filters Locally) ---
+    override suspend fun getSearchMangaList(page: Int, query: String, filters: FilterList): MangasPage {
+        cacheMutex.withLock {
+            // Safety cap of 200 pages to prevent infinite loops if site HTML changes
+            var safetyCounter = 0
+            while (!isAllLatestLoaded && safetyCounter < 200) {
+                val nextPage = lastSequentialPageLoaded + 1
+                getLatestUpdates(nextPage)
+                safetyCounter++
+            }
+        }
+
+        val cleanQuery = query.trim()
+        val filteredMangas = synchronized(cachedMangas) {
+            if (cleanQuery.isEmpty()) {
+                cachedMangas.values.toList()
+            } else {
+                cachedMangas.values.filter { manga ->
+                    manga.title.contains(cleanQuery, ignoreCase = true)
+                }
+            }
+        }
+
+        return MangasPage(filteredMangas, false)
     }
 
     // --- Manga Details & Chapters ---

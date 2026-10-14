@@ -5,12 +5,12 @@ plugins {
 }
 
 keiyoushi {
-    name = "MT98"
+    name = "Manhwa Tower"
     libVersion = "1.6"
-    versionCode = 1
+    versionCode = 2
 
     source {
-        name = "MT98"
+        name = "Manhwa Tower"
         baseUrl = "https://mt98.ir"
         lang = "fa"
         contentWarning = ContentWarning.SAFE
