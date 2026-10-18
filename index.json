@@ -1,5 +1,8 @@
 {
   "name": "Manhwa Tower Repository",
+  "badgeLabel": "Manhwa Tower",
+  "signingKey": "",
+  "contact": "",
   "metadata": {
     "version": 2
   },
