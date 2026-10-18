@@ -43,7 +43,7 @@ jobs:
             {
               "name": "Tachiyomi: Manhwa Tower",
               "pkg": "eu.kanade.tachiyomi.extension.fa.mt98",
-              "apk": "${APK_NAME}",
+              "apk": "apk/${APK_NAME}",
               "lang": "fa",
               "code": 2,
               "version": "1.6.2",
