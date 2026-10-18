@@ -43,6 +43,9 @@ jobs:
           cat <<JSONEOF > repo/index.json
           {
             "name": "Manhwa Tower Repository",
+            "badgeLabel": "Manhwa Tower",
+            "signingKey": "",
+            "contact": "",
             "metadata": {
               "version": 2
             },
