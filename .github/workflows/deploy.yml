@@ -34,10 +34,10 @@ jobs:
 
       - name: Generate Repository JSON
         run: |
-          mkdir -p repo
-          cp src/fa/mt98/build/outputs/apk/release/*.apk repo/
+          mkdir -p repo/apk
+          cp src/fa/mt98/build/outputs/apk/release/*.apk repo/apk/
           
-          APK_FILE=$(ls repo/*.apk)
+          APK_FILE=$(ls repo/apk/*.apk)
           APK_NAME=$(basename "$APK_FILE")
           
           cat <<JSONEOF > repo/index.json
