@@ -2,7 +2,9 @@
   "name": "Manhwa Tower Repository",
   "badgeLabel": "Manhwa Tower",
   "signingKey": "",
-  "contact": "amirali.ghadimiii@gmail.com",
+  "contact": {
+    "website": "mt98.ir"
+  },
   "metadata": {
     "version": 2
   },
