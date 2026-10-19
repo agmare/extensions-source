@@ -32,7 +32,9 @@ jobs:
           ./gradlew spotlessApply
           ./gradlew :src:fa:mt98:assembleRelease
 
-      - name: Generate Repository JSON
+      - name: Generate and Sign Repository JSON
+        env:
+          SIGNING_PRIVATE_KEY: ${{ secrets.SIGNING_PRIVATE_KEY }}
         run: |
           mkdir -p repo/apk
           cp src/fa/mt98/build/outputs/apk/release/*.apk repo/apk/
@@ -40,6 +42,7 @@ jobs:
           APK_FILE=$(ls repo/apk/*.apk)
           APK_NAME=$(basename "$APK_FILE")
           
+          # Write out the base index.json without signingKey yet
           cat <<JSONEOF > repo/index.json
           {
             "name": "Manhwa Tower Repository",
@@ -72,6 +75,45 @@ jobs:
             ]
           }
           JSONEOF
+
+          # Install python cryptography package to sign the index
+          pip install cryptography
+
+          # Run python script to sign index.json and update signingKey field
+          python3 - << 'EOF'
+          import os
+          import json
+          import base64
+          from cryptography.hazmat.primitives import hashes
+          from cryptography.hazmat.primitives.asymmetric import padding
+          from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
+          private_key_pem = os.environ.get("SIGNING_PRIVATE_KEY")
+          if not private_key_pem:
+              raise ValueError("SIGNING_PRIVATE_KEY secret is missing!")
+
+          private_key = load_pem_private_key(private_key_pem.encode('utf-8'), password=None)
+
+          with open("repo/index.json", "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          # Clear signingKey before signing payload canonicalization check
+          data["signingKey"] = ""
+          
+          # Serialize packages array/payload for signing
+          payload = json.dumps(data["packages"], separators=(',', ':'), sort_keys=True).encode('utf-8')
+
+          signature = private_key.sign(
+              payload,
+              padding.PKCS1v15(),
+              hashes.SHA256()
+          )
+
+          data["signingKey"] = base64.b64encode(signature).decode('utf-8')
+
+          with open("repo/index.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, separators=(',', ':'))
+          EOF
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
